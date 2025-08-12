@@ -33,6 +33,7 @@ jobs:
               GITHUB_ORGANIZATION: ${{ secrets.ORGANIZATION }}
             run: |
               installation_id=$(python3 get_installation_id.py)
+              echo "installation_id=$installation_id"
               echo "GITHUB_INSTALLATION_ID=$installation_id" >> $GITHUB_OUTPUT
 
           - name: Terraform Init
