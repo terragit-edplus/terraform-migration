@@ -1,0 +1,3 @@
+name,description,visibility
+first-repo,First repository,public
+second-repo,Second repository,private
