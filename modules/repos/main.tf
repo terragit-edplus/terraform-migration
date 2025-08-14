@@ -3,5 +3,5 @@ resource "github_repository" "repos" {
 
   name        = each.value.name
   description = each.value.description
-  visibility  = each.value.visibility == "true" ? "private" : "public"
+  visibility  = each.value.visibility
 }
