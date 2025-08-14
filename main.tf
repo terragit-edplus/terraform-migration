@@ -7,11 +7,8 @@ provider "github" {
     }
 }
 
-locals {
-  repos              = csvdecode(file("${path.module}/csv/repos.csv"))
-}
-
-module "repos" {
-  source = "./modules/repos"
-  repos  = local.repos
+resource "github_repository" "test" {
+  name        = "test-repo"
+  description = "A test repository"
+  visibility  = "private"
 }
