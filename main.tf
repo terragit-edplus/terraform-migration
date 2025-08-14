@@ -1,4 +1,5 @@
 provider "github" {
+    alias = "app"
     owner = var.github_organization
     app_auth {
         id              = var.app_id
@@ -7,4 +8,14 @@ provider "github" {
     }
 }
 
+locals {
+  repos              = csvdecode(file("${path.module}/csv/repos.csv"))
+}
 
+module "repos" {
+  source = "./modules/repos"
+  repos  = local.repos
+  providers = {
+      github = github.app
+  }
+}
