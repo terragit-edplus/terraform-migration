@@ -16,13 +16,14 @@ jobs:
             uses: hashicorp/setup-terraform@v2
             with:
               cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
-              GITHUB_APP_ID: ${{ secrets.APP_ID }}
-              GITHUB_APP_INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
-              GITHUB_APP_PEM_FILE: ${{ secrets.APP_PEM }}
-              TF_VAR_github_organization: ${{ secrets.ORGANIZATION }}
-
+              
           - name: Terraform Init
             run: terraform init
 
           - name: Terraform Apply
+            env:
+              TF_VAR_github_organization: ${{ secrets.ORGANIZATION }}
+              TF_VAR_app_id: ${{ secrets.APP_ID }}
+              TF_VAR_app_installation_id: ${{ secrets.INSTALLATION_ID }}
+              TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
             run: terraform apply -auto-approve
