@@ -1,4 +1,5 @@
 provider "github" {
+    alias = "app"
     owner = var.github_organization
     app_auth {
         id              = var.app_id
@@ -16,6 +17,6 @@ module "repos" {
   repos  = local.repos
 
   providers = {
-    github = github
+    github = app
   }
 }
