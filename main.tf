@@ -12,11 +12,13 @@ locals {
   members            = csvdecode(file("${path.module}/csv/members.csv"))
   teams              = csvdecode(file("${path.module}/csv/teams.csv"))
   team_members       = csvdecode(file("${path.module}/csv/team_members.csv"))
+  branches           = csvdecode(file("${path.module}/csv/branches.csv"))
 }
 
 module "repos" {
   source = "./modules/repos"
   repos  = local.repos
+  branches = local.branches
 }
 
 module "members" {

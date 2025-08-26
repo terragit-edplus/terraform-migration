@@ -5,3 +5,10 @@ variable "repos" {
     visibility     = string
   }))
 }
+
+variable "branches" {
+  type = list(object({
+    repo   = string
+    branch = string
+  }))
+}
