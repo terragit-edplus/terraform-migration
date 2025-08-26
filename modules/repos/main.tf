@@ -4,6 +4,8 @@ resource "github_repository" "repos" {
   name        = each.value.name
   description = each.value.description
   visibility  = each.value.visibility
+
+  auto_init = true
 }
 
 resource "github_branch" "development" {
