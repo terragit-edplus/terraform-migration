@@ -10,6 +10,8 @@ provider "github" {
 locals {
   repos              = csvdecode(file("${path.module}/csv/repos.csv"))
   members            = csvdecode(file("${path.module}/csv/members.csv"))
+  teams              = csvdecode(file("${path.module}/csv/teams.csv"))
+  team_members       = csvdecode(file("${path.module}/csv/team_members.csv"))
 }
 
 module "repos" {
@@ -20,4 +22,10 @@ module "repos" {
 module "members" {
   source  = "./modules/org"
   members = local.members
+}
+
+module "teams" {
+  source = "./modules/teams"
+  teams  = local.teams
+  team_members = local.team_members
 }
