@@ -41,4 +41,10 @@ resource "github_branch" "custom" {
 
   repository = each.value.repo
   branch     = each.value.branch
+
+  lifecycle {
+  precondition {
+    condition     = contains(keys(github_repository.repos), each.value.repo)
+    error_message = "branches.csv references repo '${each.value.repo}' which is not managed by Terraform."
+  }
 }
