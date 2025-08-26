@@ -8,32 +8,23 @@ resource "github_repository" "repos" {
   auto_init = true
 }
 
-resource "github_branch" "development" {
-  for_each = { for r in var.repos : r.name => r }
-
-  repository = each.value.name
-  branch     = "development"
+locals {
+  default_branches = ["development", "qa", "staging", "production"]
 }
 
-resource "github_branch" "qa" {
-  for_each = { for r in var.repos : r.name => r }
+resource "github_branch" "default" {
+  for_each      = { for rb in flatten([
+    for repo, _ in github_repository.repos : [
+      for b in local.default_branches : {
+        repo   = repo
+        branch = b
+      }
+    ]
+  ]) : "${rb.repo}:${rb.branch}" => rb }
 
-  repository = each.value.name
-  branch     = "qa"
-}
-
-resource "github_branch" "staging" {
-  for_each = { for r in var.repos : r.name => r }
-
-  repository = each.value.name
-  branch     = "staging"
-}
-
-resource "github_branch" "production" {
-  for_each = { for r in var.repos : r.name => r }
-
-  repository = each.value.name
-  branch     = "production"
+  repository    = each.value.repo
+  branch        = each.value.branch
+  source_branch = "main"
 }
 
 resource "github_branch" "custom" {
