@@ -9,9 +9,15 @@ provider "github" {
 
 locals {
   repos              = csvdecode(file("${path.module}/csv/repos.csv"))
+  members            = csvdecode(file("${path.module}/csv/members.csv"))
 }
 
 module "repos" {
   source = "./modules/repos"
   repos  = local.repos
+}
+
+module "members" {
+  source  = "./modules/org"
+  members = local.members
 }
