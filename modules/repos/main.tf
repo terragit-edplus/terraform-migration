@@ -40,3 +40,28 @@ resource "github_branch" "custom" {
     }
   }
 }
+
+resource "github_repository_collaborators" "users" {
+
+  for_each = { for p in var.user_permissions : p.repo =>p }
+
+  repository = each.value.repo
+  user{
+    username   = each.value.user
+    permission = each.value.permission
+  }
+  
+}
+
+resource "github_repository_collaborators" "teams" {
+
+  for_each = { for p in var.team_permissions : p.repo =>p }
+
+  repository = each.value.repo
+  
+  team{
+    team_id    = each.value.team
+    permission = each.value.permission
+  }
+  
+}
