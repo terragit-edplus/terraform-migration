@@ -25,10 +25,26 @@ resource "github_branch" "default" {
   repository    = each.value.repo
   branch        = each.value.branch
   source_branch = "main"
+
+  depends_on = [ github_repository.repos ]
+}
+
+locals {
+  default_keys = toset(flatten([
+    for repo, _ in github_repository.repos : [
+      for b in local.default_branches : "${repo}:${b}"
+    ]
+  ]))
+
+  custom_branches_filtered = {
+    for b in var.branches :
+    "${b.repo}:${b.branch}" => b
+    if !contains(local.default_keys, "${b.repo}:${b.branch}")
+  }
 }
 
 resource "github_branch" "custom" {
-  for_each = { for b in var.branches : b.repo => b }
+  for_each = local.custom_branches_filtered
 
   repository = each.value.repo
   branch     = each.value.branch
@@ -39,6 +55,8 @@ resource "github_branch" "custom" {
     error_message = "branches.csv references repo '${each.value.repo}' which is not managed by Terraform."
     }
   }
+
+  depends_on = [ github_repository.repos ]
 }
 
 resource "github_repository_collaborators" "users" {
@@ -50,6 +68,8 @@ resource "github_repository_collaborators" "users" {
     username   = each.value.user
     permission = each.value.permission
   }
+
+  depends_on = [ github_repository.repos ]
   
 }
 
@@ -58,10 +78,37 @@ resource "github_repository_collaborators" "teams" {
   for_each = { for p in var.team_permissions : p.repo =>p }
 
   repository = each.value.repo
-  
+
   team{
     team_id    = each.value.team
     permission = each.value.permission
   }
   
+  depends_on = [ github_repository.repos ]
+}
+
+resource "github_repository_file" "codeowners"{
+  for_each = { for b in var.branches : "${b.repo}:${b.branch}" => b if length(trimspace(b.codeowners)) > 0 }
+  repository = each.value.repo
+  branch     = each.value.branch
+  file       = ".github/CODEOWNERS"
+  content    = each.value.codeowners
+  commit_message = "Add CODEOWNERS file to ${each.value.branch} branch"
+  overwrite_on_create = true
+
+  depends_on = [ github_branch.custom ]
+}
+
+resource "github_branch_protection_v3" "protection" {
+  for_each = { for b in var.branches : "${b.repo}:${b.branch}" => b }
+  repository = each.value.repo
+  branch     = each.value.branch
+  required_pull_request_reviews {
+    require_code_owner_reviews = each.value.codeOwnerReviewRequired
+    required_approving_review_count = each.value.minPRCount
+  }
+  restrictions {
+    users = length(trimspace(each.value.users)) > 0 ? split(",", each.value.users) : []
+    teams = length(trimspace(each.value.teams)) > 0 ? split(",", each.value.teams) : []
+  }
 }

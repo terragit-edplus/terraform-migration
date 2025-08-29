@@ -1,2 +1,2 @@
-repo,branch
-repo2,hotfix-feature
+repo,branch,codeOwners,minPRCount,users,teams,codeOwnerReviewRequired
+repo2,prod,@shashank-kv,1,,developers,true

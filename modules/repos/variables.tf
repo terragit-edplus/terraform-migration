@@ -10,6 +10,11 @@ variable "branches" {
   type = list(object({
     repo   = string
     branch = string
+    codeowners        = string
+    minPRCount       = number
+    users  = string
+    teams  = string
+    codeOwnerReviewRequired = bool
   }))
 }
 
