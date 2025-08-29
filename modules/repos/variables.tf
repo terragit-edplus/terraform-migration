@@ -11,10 +11,10 @@ variable "branches" {
     repo   = string
     branch = string
     codeOwners        = string
-    minPRCount       = number
+    minPRCount       = optional(number, 0)
     users  = string
     teams  = string
-    codeOwnerReviewRequired = bool
+    codeOwnerReviewRequired = optional(bool, false)
   }))
 }
 
