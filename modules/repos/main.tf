@@ -88,11 +88,11 @@ resource "github_repository_collaborators" "teams" {
 }
 
 resource "github_repository_file" "codeowners"{
-  for_each = { for b in var.branches : "${b.repo}:${b.branch}" => b if length(trimspace(b.codeowners)) > 0 }
+  for_each = { for b in var.branches : "${b.repo}:${b.branch}" => b if length(trimspace(b.codeOwners)) > 0 }
   repository = each.value.repo
   branch     = each.value.branch
   file       = ".github/CODEOWNERS"
-  content    = each.value.codeowners
+  content    = each.value.codeOwners
   commit_message = "Add CODEOWNERS file to ${each.value.branch} branch"
   overwrite_on_create = true
 
