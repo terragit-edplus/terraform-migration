@@ -88,27 +88,15 @@ resource "github_repository_collaborators" "teams" {
   depends_on = [ github_repository.repos ]
 }
 
-locals {
-  content = {
-    for r in var.codeowners_rules :
-    "${r.repo}:${r.branch}" => join("\n", [
-      for x in var.codeowners_rules :
-      "${x.path} ${join(" ", concat(
-        [for u in split(";", trim(x.users)) : "@" + trim(u) if trim(u) != ""],
-        [for t in split(";", trim(x.teams)) : "@your-org/" + trim(t) if trim(t) != ""]
-      ))}"
-      if x.repo == r.repo && x.branch == r.branch
-    ])
-  }
-}
-
 resource "github_repository_file" "codeowners"{
-  for_each = local.content
-  repository = split(each.key, ":")[0]
-  branch     = split(each.key, ":")[1]
+  for_each = local.custom_branches_filtered
+
+  repository = each.value.repo
+  branch     = each.value.branch
+
   file       = ".github/CODEOWNERS"
   content    = "# Managed by Terraform\n${each.value}\n"
-  commit_message = "Add CODEOWNERS file to ${each.value.branch} branch"
+  commit_message = file("${path.module}/templates/CODEOWNERS.tmpl")
   overwrite_on_create = true
 
   depends_on = [ github_branch.custom ]

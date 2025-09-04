@@ -32,13 +32,3 @@ variable "user_permissions"{
     permission = string
   }))
 }
-
-variable "codeowners_rules" {
-  type = list(object({
-    repo       = string
-    branch     = string
-    path       = string
-    users       = string
-    teams       = string
-  }))
-}
