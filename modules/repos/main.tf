@@ -95,8 +95,8 @@ resource "github_repository_file" "codeowners"{
   branch     = each.value.branch
 
   file       = ".github/CODEOWNERS"
-  content    = "# Managed by Terraform\n${each.value}\n"
-  commit_message = file("${path.module}/templates/CODEOWNERS.tmpl")
+  content    = file("${path.module}/templates/CODEOWNERS.tmpl")
+  commit_message = "Add CODEOWNERS file to ${each.value.branch} branch"
   overwrite_on_create = true
 
   depends_on = [ github_branch.custom ]
