@@ -88,18 +88,23 @@ resource "github_repository_collaborators" "teams" {
   depends_on = [ github_repository.repos ]
 }
 
-resource "github_repository_file" "codeowners"{
-  for_each = local.custom_branches_filtered
+locals {
+  branches_needing_codeowners = {
+    for b in var.branches :
+    "${b.repo}:${b.branch}" => b
+    if b.codeOwnerReviewRequired
+  }
+}
 
-  repository = each.value.repo
-  branch     = each.value.branch
-
-  file       = ".github/CODEOWNERS"
-  content    = file("${path.module}/CODEOWNERS.tmpl")
-  commit_message = "Add CODEOWNERS file to ${each.value.branch} branch"
+resource "github_repository_file" "codeowners" {
+  for_each            = local.branches_needing_codeowners
+  repository          = each.value.repo
+  branch              = each.value.branch
+  file                = ".github/CODEOWNERS"
+  content             = file("${path.module}/CODEOWNERS.tmpl")
+  commit_message      = "Add CODEOWNERS to ${each.value.branch}"
   overwrite_on_create = true
-
-  depends_on = [ github_branch.custom ]
+  depends_on          = [github_branch.default, github_branch.custom]
 }
 
 resource "github_branch_protection_v3" "protection" {
