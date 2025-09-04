@@ -10,7 +10,6 @@ variable "branches" {
   type = list(object({
     repo   = string
     branch = string
-    codeOwners        = string
     minPRCount       = optional(number, 0)
     users  = string
     teams  = string
@@ -31,5 +30,15 @@ variable "user_permissions"{
     repo = string
     user = string
     permission = string
+  }))
+}
+
+variable "codeowners_rules" {
+  type = list(object({
+    repo       = string
+    branch     = string
+    path       = string
+    user       = string
+    team       = string
   }))
 }
