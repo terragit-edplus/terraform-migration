@@ -60,32 +60,19 @@ resource "github_branch" "custom" {
   depends_on = [ github_repository.repos ]
 }
 
-resource "github_repository_collaborators" "users" {
-
-  for_each  = { for p in var.user_permissions : "${p.repo}:${p.user}" => p }
-
+resource "github_repository_collaborator" "users" {
+  for_each   = { for p in var.user_permissions : "${p.repo}:${p.user}" => p }
   repository = each.value.repo
-  user{
-    username   = each.value.user
-    permission = each.value.permission
-  }
-
-  depends_on = [ github_repository.repos ]
-  
+  username   = each.value.user
+  permission = each.value.permission
 }
 
-resource "github_repository_collaborators" "teams" {
 
-  for_each  = { for p in var.team_permissions : "${p.repo}:${p.team}" => p }
-
+resource "github_team_repository" "teams" {
+  for_each   = { for p in var.team_permissions : "${p.repo}:${p.team}" => p }
+  team_id    = each.value.team
   repository = each.value.repo
-
-  team{
-    team_id    = each.value.team
-    permission = each.value.permission
-  }
-  
-  depends_on = [ github_repository.repos ]
+  permission = each.value.permission
 }
 
 locals {
