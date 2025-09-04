@@ -38,7 +38,7 @@ variable "codeowners_rules" {
     repo       = string
     branch     = string
     path       = string
-    user       = string
-    team       = string
+    users       = string
+    teams       = string
   }))
 }
