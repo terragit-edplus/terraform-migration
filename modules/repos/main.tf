@@ -95,7 +95,7 @@ resource "github_repository_file" "codeowners"{
   branch     = each.value.branch
 
   file       = ".github/CODEOWNERS"
-  content    = file("${path.module}/templates/CODEOWNERS.tmpl")
+  content    = file("${path.module}/CODEOWNERS.tmpl")
   commit_message = "Add CODEOWNERS file to ${each.value.branch} branch"
   overwrite_on_create = true
 
