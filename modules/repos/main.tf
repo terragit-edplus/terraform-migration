@@ -98,19 +98,25 @@ resource "github_team_repository" "default" {
 }
 
 locals {
-  branches_needing_codeowners = {
-    for b in var.branches :
-    "${b.repo}:${b.branch}" => b
-    if b.codeOwnerReviewRequired
+  content = {
+    for r in var.codeowners_rules :
+    "${r.repo}:${r.branch}:${r.path}" => join("\n", [
+      for x in var.codeowners_rules :
+      "${x.path} ${join(" ", concat(
+        [for u in split(",", x.users) : "@" + trim(u) if trim(u) != ""],
+        [for t in split(",", x.teams) : "@your-org/" + trim(t) if trim(t) != ""]
+      ))}"
+      if x.repo == r.repo && x.branch == r.branch
+    ])
   }
 }
 
 resource "github_repository_file" "codeowners" {
-  for_each            = local.branches_needing_codeowners
-  repository          = each.value.repo
-  branch              = each.value.branch
+  for_each    = locals.content
+  repository          = split(":", each.key)[0]
+  branch              = split(":", each.key)[1]
   file                = ".github/CODEOWNERS"
-  content             = file("${path.module}/CODEOWNERS.tmpl")
+  content             = each.value
   commit_message      = "Add CODEOWNERS to ${each.value.branch}"
   overwrite_on_create = true
   depends_on          = [github_branch.default, github_branch.custom]
@@ -129,8 +135,8 @@ resource "github_branch_protection_v3" "protection" {
     required_approving_review_count = each.value.minPRCount
   }
   restrictions {
-    users = length(trimspace(each.value.users)) > 0 ? split(",", each.value.users) : []
-    teams = length(trimspace(each.value.teams)) > 0 ? split(",", each.value.teams) : []
+    users = length(trimspace(each.value.users)) > 0 ? split(";", each.value.users) : []
+    teams = length(trimspace(each.value.teams)) > 0 ? split(";", each.value.teams) : []
   }
    depends_on = [github_branch.default, github_branch.custom ]
 }
