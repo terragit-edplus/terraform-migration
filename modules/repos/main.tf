@@ -88,10 +88,9 @@ resource "github_repository_collaborators" "teams" {
   depends_on = [ github_repository.repos ]
 }
 
-resource "github_repository_collaborators" "teams" {
+resource "github_repository_collaborators" "default" {
 
-  for_each  = { for p in var.team_permissions : "${p.repo}:${p.team}" => p }
-
+  for_each = { for r in var.repos : r.name => r  }
   repository = each.value.repo
 
   team{
