@@ -112,7 +112,7 @@ locals {
 }
 
 resource "github_repository_file" "codeowners" {
-  for_each    = locals.content
+  for_each    = local.content
   repository          = split(":", each.key)[0]
   branch              = split(":", each.key)[1]
   file                = ".github/CODEOWNERS"
@@ -120,10 +120,6 @@ resource "github_repository_file" "codeowners" {
   commit_message      = "Add CODEOWNERS to ${each.value.branch}"
   overwrite_on_create = true
   depends_on          = [github_branch.default, github_branch.custom]
-  lifecycle {
-    # Do not overwrite manual edits
-    ignore_changes = [content]
-  }
 }
 
 resource "github_branch_protection_v3" "protection" {
