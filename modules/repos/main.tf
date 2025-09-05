@@ -42,7 +42,7 @@ locals {
     if !contains(local.default_keys, "${b.repo}:${b.branch}")
   }
 
-  admin_teams = setproduct(github_repository.repos.*.name, var.administrators.*.team)
+  admin_teams = setproduct(var.repos.*.name, var.administrators.*.team)
 
 }
 
