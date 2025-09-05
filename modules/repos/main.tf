@@ -103,8 +103,8 @@ locals {
     "${r.repo}:${r.branch}:${r.path}" => join("\n", [
       for x in var.codeowners_rules :
       "${x.path} ${join(" ", concat(
-        [for u in split(",", x.users) : "@" + trim(u) if trim(u) != ""],
-        [for t in split(",", x.teams) : "@your-org/" + trim(t) if trim(t) != ""]
+        [for u in split(",", x.users) : "@" + trimspace(u) if trimspace(u) != ""],
+        [for t in split(",", x.teams) : "@terragit-edplus/" + trimspace(t) if trimspace(t) != ""]
       ))}"
       if x.repo == r.repo && x.branch == r.branch
     ])
