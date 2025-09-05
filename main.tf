@@ -16,6 +16,7 @@ locals {
   user_permissions   = csvdecode(file("${path.module}/csv/user_repo_permissions.csv"))
   team_permissions   = csvdecode(file("${path.module}/csv/team_repo_permissions.csv"))
   administrators              = csvdecode(file("${path.module}/csv/admins.csv"))
+  codeowners_rules  = csvdecode(file("${path.module}/csv/codeowner_rules.csv"))
 }
 
 module "repos" {
@@ -25,6 +26,7 @@ module "repos" {
   user_permissions = local.user_permissions
   team_permissions = local.team_permissions
   administrators = local.administrators
+  codeowners_rules = local.codeowners_rules
 }
 
 module "members" {
