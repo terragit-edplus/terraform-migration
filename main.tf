@@ -15,7 +15,7 @@ locals {
   branches           = csvdecode(file("${path.module}/csv/branches.csv"))
   user_permissions   = csvdecode(file("${path.module}/csv/user_repo_permissions.csv"))
   team_permissions   = csvdecode(file("${path.module}/csv/team_repo_permissions.csv"))
-  adminstrators              = csvdecode(file("${path.module}/csv/admins.csv"))
+  administrators              = csvdecode(file("${path.module}/csv/admins.csv"))
 }
 
 module "repos" {
