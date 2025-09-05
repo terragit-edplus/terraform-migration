@@ -36,6 +36,5 @@ variable "user_permissions"{
 variable "administrators" {
   type = list(object({
     team = string
-    permission = string
   }))
 }
