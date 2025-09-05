@@ -117,7 +117,7 @@ resource "github_repository_file" "codeowners" {
   branch              = split(":", each.key)[1]
   file                = ".github/CODEOWNERS"
   content             = each.value
-  commit_message      = "Add CODEOWNERS to ${each.value.branch}"
+  commit_message      = "Add CODEOWNERS to ${repository} on branch ${branch}"
   overwrite_on_create = true
   depends_on          = [github_branch.default, github_branch.custom]
 }
