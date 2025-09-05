@@ -42,6 +42,8 @@ locals {
     if !contains(local.default_keys, "${b.repo}:${b.branch}")
   }
 
+  admin_teams = setproduct(github_repository.repos.*.name, var.administrators.*.team)
+
 }
 
 resource "github_branch" "custom" {
@@ -87,14 +89,12 @@ resource "github_team_repository" "teams" {
 }
 
 resource "github_team_repository" "default" {
-
-  for_each = { for r in var.repos : r.name => r  }
-  repository = each.value.name
   
-  team_id    = "edpl-devops-admin"
+  for_each    = { for at in local.admin_teams : "${at[0]}:${at[1]}" => at }
+  repository = each.value[0]
+  team_id    = each.value[1]
   permission = "admin"
-  
-  depends_on = [ github_repository.repos ]
+
 }
 
 locals {
