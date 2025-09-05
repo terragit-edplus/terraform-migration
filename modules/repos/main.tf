@@ -100,14 +100,22 @@ resource "github_team_repository" "default" {
 locals {
   content = {
     for r in var.codeowners_rules :
-    "${r.repo}:${r.branch}:${r.path}" => join("\n", [
+    "${r.repo}:${r.branch}:${r.path}" => join("\n", concat(
+      [
+        "# ----------------------------------------------------------------------",
+        "# DO NOT MODIFY THIS FILE DIRECTLY",
+        "# This CODEOWNERS file is managed by Terraform",
+        "# ----------------------------------------------------------------------"
+      ],
+      [
       for x in var.codeowners_rules :
       "${x.path} ${join(" ", concat(
         [for u in split(",", x.users) : "@${trimspace(u)}" if trimspace(u) != ""],
         [for t in split(",", x.teams) : "@terragit-edplus/${trimspace(t)}" if trimspace(t) != ""]
       ))}"
       if x.repo == r.repo && x.branch == r.branch
-    ])
+    ]
+    ))
   }
 }
 
