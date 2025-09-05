@@ -91,7 +91,7 @@ resource "github_repository_collaborators" "teams" {
 resource "github_repository_collaborators" "default" {
 
   for_each = { for r in var.repos : r.name => r  }
-  repository = each.value.repo
+  repository = each.value.name
 
   team{
     team_id    = "edpl-devops-admin"
