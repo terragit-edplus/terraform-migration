@@ -134,6 +134,7 @@ resource "github_branch_protection_v3" "protection" {
   for_each = { for b in var.branches : "${b.repo}:${b.branch}" => b }
   repository = each.value.repo
   branch     = each.value.branch
+  enforce_admins = true
   required_pull_request_reviews {
     require_code_owner_reviews = each.value.codeOwnerReviewRequired
     required_approving_review_count = each.value.minPRCount
