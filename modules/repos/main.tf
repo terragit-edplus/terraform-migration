@@ -10,6 +10,23 @@ resource "github_repository" "repos" {
 
 locals {
   default_branches = ["development", "qa", "staging", "production"]
+
+  default_keys = toset(flatten([
+    for repo, _ in github_repository.repos : [
+      for b in local.default_branches : "${repo}:${b}"
+    ]
+  ]))
+
+  custom_branches_filtered = {
+    for b in var.branches :
+    "${b.repo}:${b.branch}" => b
+    if !contains(local.default_keys, "${b.repo}:${b.branch}")
+  }
+
+  admin_teams = setproduct(var.repos.*.name, var.administrators.*.team)
+
+  environments = setproduct(var.repos.*.name, default_branches)
+
 }
 
 resource "github_branch" "default" {
@@ -27,23 +44,6 @@ resource "github_branch" "default" {
   source_branch = "main"
 
   depends_on = [ github_repository.repos ]
-}
-
-locals {
-  default_keys = toset(flatten([
-    for repo, _ in github_repository.repos : [
-      for b in local.default_branches : "${repo}:${b}"
-    ]
-  ]))
-
-  custom_branches_filtered = {
-    for b in var.branches :
-    "${b.repo}:${b.branch}" => b
-    if !contains(local.default_keys, "${b.repo}:${b.branch}")
-  }
-
-  admin_teams = setproduct(var.repos.*.name, var.administrators.*.team)
-
 }
 
 resource "github_branch" "custom" {
@@ -144,4 +144,21 @@ resource "github_branch_protection_v3" "protection" {
     teams = length(trimspace(each.value.teams)) > 0 ? split(";", each.value.teams) : []
   }
    depends_on = [github_branch.default, github_branch.custom ]
+}
+
+resource "github_repository_environment" "envs" {
+  for_each = local.environments
+  repository = each.value[0]
+  environment       = each.value[1]
+  deployment_branch_policy {
+    protected_branches = false
+    custom_branch_policies = false
+  }
+}
+
+resource "github_repository_environment_deployment_policy" "env_policy" {
+  for_each = local.environments
+  repository = each.value[0]
+  environment = each.value[1]
+  tag_pattern = "${environment}"
 }
