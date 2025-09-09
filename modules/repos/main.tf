@@ -157,8 +157,9 @@ resource "github_repository_environment" "envs" {
 }
 
 resource "github_repository_environment_deployment_policy" "env_policy" {
-  for_each = {for env in local.environments : "${env[0]}:${env[1]}" => env}
+  for_each = {for env in local.environments : "${env[0]}:${env[1]}:env_policy" => env}
   repository = each.value[0]
   environment = each.value[1]
   tag_pattern = each.value[1]
+  depends_on = [ github_repository_environment.envs ]
 }
