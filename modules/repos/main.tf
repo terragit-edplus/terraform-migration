@@ -131,7 +131,7 @@ resource "github_repository_file" "codeowners" {
 }
 
 resource "github_branch_protection_v3" "protection" {
-  for_each = { for b in var.branches : "${b.repo}:${b.branch}" => b }
+  for_each = { for b in var.branches : "${b.repo}:${b.branch}:env" => b }
   repository = each.value.repo
   branch     = each.value.branch
   enforce_admins = true
@@ -147,7 +147,7 @@ resource "github_branch_protection_v3" "protection" {
 }
 
 resource "github_repository_environment" "envs" {
-  for_each = {for env in local.environments : "${env[0]}:${env[1]}" => env}
+  for_each = {for env in local.environments : "${env[0]}:${env[1]}:env" => env}
   repository = each.value[0]
   environment       = each.value[1]
   deployment_branch_policy {
