@@ -25,7 +25,7 @@ locals {
 
   admin_teams = setproduct(var.repos.*.name, var.administrators.*.team)
 
-  environments = setproduct(var.repos.*.name, default_branches)
+  environments = setproduct(var.repos.*.name, local.default_branches)
 
 }
 
