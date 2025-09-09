@@ -147,7 +147,7 @@ resource "github_branch_protection_v3" "protection" {
 }
 
 resource "github_repository_environment" "envs" {
-  for_each = {for env in local.environments : "$env[0]:$env[1]" => env}
+  for_each = {for env in local.environments : "${env[0]}:${env[1]}" => env}
   repository = each.value[0]
   environment       = each.value[1]
   deployment_branch_policy {
@@ -157,7 +157,7 @@ resource "github_repository_environment" "envs" {
 }
 
 resource "github_repository_environment_deployment_policy" "env_policy" {
-  for_each = {for env in local.environments : "$env[0]:$env[1]" => env}
+  for_each = {for env in local.environments : "${env[0]}:${env[1]}" => env}
   repository = each.value[0]
   environment = each.value[1]
   tag_pattern = each.value[1]
