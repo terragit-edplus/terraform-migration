@@ -152,7 +152,7 @@ resource "github_repository_environment" "envs" {
   environment       = each.value[1]
   deployment_branch_policy {
     protected_branches = false
-    custom_branch_policies = false
+    custom_branch_policies = true
   }
 }
 
