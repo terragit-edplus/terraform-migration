@@ -169,7 +169,7 @@ resource "github_repository_file" "frontend_workflow" {
   repository          = each.value.repository
   branch              = each.value.environment
   file                = ".github/workflows/deploy-${each.value.environment}.yml"
-  content             = "${path.module}/workflows/frontend.yml"
+  content             = file("${path.module}/workflows/frontend.yml")
   commit_message      = "Add CI/CD frontend workflow for ${each.value.environment} environment"
   overwrite_on_create = true
   depends_on = [ github_repository_environment.envs ]
