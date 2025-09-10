@@ -1,0 +1,48 @@
+name: Upload index.html to S3
+
+on:
+  workflow_dispatch: {}   # manual trigger
+
+permissions:
+  id-token: write         # needed for OIDC
+  contents: read
+
+jobs:
+  upload:
+    # if you use envs named dev/qa/staging/prod, running from that branch will bind to that env
+    environment: ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: upload-index-${{ github.ref_name }}
+      cancel-in-progress: false
+
+    env:
+      AWS_REGION:   ${{ vars.AWS_REGION }}     # e.g. us-east-1
+      S3_BUCKET:    ${{ vars.S3_BUCKET }}      # e.g. my-site-bucket
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}# IAM role to assume via OIDC
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region:     ${{ env.AWS_REGION }}
+
+      - name: Verify file exists
+        run: test -f index.html || { echo "index.html not found at repo root"; exit 1; }
+
+      - name: Upload index.html
+        run: |
+          aws s3 cp index.html "s3://${S3_BUCKET}/index.html" \
+            --content-type "text/html; charset=utf-8" \
+            --cache-control "no-cache"
+
+      # optional—only if you're serving through CloudFront
+      - name: Invalidate CloudFront
+        if: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/index.html" "/"

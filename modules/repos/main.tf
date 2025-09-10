@@ -163,3 +163,14 @@ resource "github_repository_environment_deployment_policy" "env_policy" {
   branch_pattern = each.value[1]
   depends_on = [ github_repository_environment.envs ]
 }
+
+resource "github_repository_file" "frontend_workflow" {
+  for_each    = local.environments
+  repository          = each.value[0]
+  branch              = each.value[1]
+  file                = ".github/workflows/deploy-${each.value[1]}.yml"
+  content             = "${path.module}/workflows/frontend.yml"
+  commit_message      = "Add CI/CD frontend workflow for ${each.value[1]} environment"
+  overwrite_on_create = true
+  depends_on          = [github_branch.default, github_branch.custom]
+}

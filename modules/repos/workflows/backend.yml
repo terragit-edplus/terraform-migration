@@ -1,0 +1,63 @@
+# .github/workflows/reusable-backend.yml
+name: Reusable Backend Deploy
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        type: string
+        required: false
+    secrets:
+      AWS_REGION: { required: true }
+      ECR_REPOSITORY: { required: true }
+      ECS_CLUSTER: { required: true }
+      ECS_SERVICE: { required: true }
+      ECS_TASK_FAMILY: { required: true }
+      ECS_TASK_ROLE_ARN: { required: true }
+      ECS_TASK_EXECUTION_ROLE_ARN: { required: true }
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+          REGISTRY:  ${{ steps.ecr.outputs.registry }}
+        run: |
+          docker build -t "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG" .
+          docker push "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG"
+      - name: Render taskdef
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+          REGISTRY:  ${{ steps.ecr.outputs.registry }}
+        run: |
+          cat > taskdef.json <<'JSON'
+          { "family": "${{ secrets.ECS_TASK_FAMILY }}",
+            "networkMode": "awsvpc",
+            "executionRoleArn": "${{ secrets.ECS_TASK_EXECUTION_ROLE_ARN }}",
+            "taskRoleArn": "${{ secrets.ECS_TASK_ROLE_ARN }}",
+            "containerDefinitions": [{
+              "name": "app",
+              "image": "${REGISTRY}/${{ secrets.ECR_REPOSITORY }}:${IMAGE_TAG}",
+              "essential": true,
+              "portMappings": [{"containerPort": 8080, "protocol": "tcp"}],
+              "logConfiguration": {"logDriver":"awslogs","options":{
+                "awslogs-group":"/ecs/${{ secrets.ECS_TASK_FAMILY }}",
+                "awslogs-region":"${{ secrets.AWS_REGION }}","awslogs-stream-prefix":"ecs"}}
+            }],
+            "requiresCompatibilities":["FARGATE"], "cpu":"256", "memory":"512" }
+          JSON
+      - uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: taskdef.json
+          service: ${{ secrets.ECS_SERVICE }}
+          cluster: ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true
