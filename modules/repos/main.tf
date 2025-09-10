@@ -154,6 +154,7 @@ resource "github_repository_environment" "envs" {
     protected_branches = false
     custom_branch_policies = true
   }
+  depends_on = [ github_repository.repos ]
 }
 
 resource "github_repository_environment_deployment_policy" "env_policy" {
