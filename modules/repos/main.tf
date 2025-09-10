@@ -157,20 +157,20 @@ resource "github_repository_environment" "envs" {
 }
 
 resource "github_repository_environment_deployment_policy" "env_policy" {
-  for_each = {for env in local.environments : "${env[0]}:${env[1]}:env_policy" => env}
-  repository = each.value[0]
-  environment = each.value[1]
-  branch_pattern = each.value[1]
+  for_each = github_repository_environment.envs
+  repository = each.value.repository
+  environment = each.value.environment
+  branch_pattern = each.value.environment
   depends_on = [ github_repository_environment.envs ]
 }
 
 resource "github_repository_file" "frontend_workflow" {
-  for_each    = local.environments
-  repository          = each.value[0]
-  branch              = each.value[1]
-  file                = ".github/workflows/deploy-${each.value[1]}.yml"
+  for_each    = github_repository_environment.envs
+  repository          = each.value.repository
+  branch              = each.value.environment
+  file                = ".github/workflows/deploy-${each.value.environment}.yml"
   content             = "${path.module}/workflows/frontend.yml"
-  commit_message      = "Add CI/CD frontend workflow for ${each.value[1]} environment"
+  commit_message      = "Add CI/CD frontend workflow for ${each.value.environment} environment"
   overwrite_on_create = true
-  depends_on          = [github_branch.default, github_branch.custom]
+  depends_on = [ github_repository_environment.envs ]
 }
