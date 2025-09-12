@@ -1,7 +1,11 @@
 name: Upload index.html to S3
 
 on:
-  workflow_dispatch: {}   # manual trigger
+  push:
+    branches:
+      - development
+    paths:
+      - 'index.html'
 
 permissions:
   id-token: write         # needed for OIDC
@@ -19,7 +23,6 @@ jobs:
     env:
       AWS_REGION:   ${{ vars.AWS_REGION }}     # e.g. us-east-1
       S3_BUCKET:    ${{ vars.S3_BUCKET }}      # e.g. my-site-bucket
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}# IAM role to assume via OIDC
 
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +30,7 @@ jobs:
       - name: Configure AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region:     ${{ env.AWS_REGION }}
 
       - name: Verify file exists

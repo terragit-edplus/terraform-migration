@@ -1,61 +1,77 @@
-# .github/workflows/reusable-backend.yml
-name: Reusable Backend Deploy
+name: Deploy Backend (Fargate)
+
 on:
-  workflow_call:
-    inputs:
-      image_tag:
-        type: string
-        required: false
-    secrets:
-      AWS_REGION: { required: true }
-      ECR_REPOSITORY: { required: true }
-      ECS_CLUSTER: { required: true }
-      ECS_SERVICE: { required: true }
-      ECS_TASK_FAMILY: { required: true }
-      ECS_TASK_ROLE_ARN: { required: true }
-      ECS_TASK_EXECUTION_ROLE_ARN: { required: true }
+  push:
+    branches: development
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+env:
+  APP_DIR: github-backend-test          # <--- change if your app folder is different
+  CONTAINER_NAME: github-backend-container      # must match your ECS service's container name
+  CONTAINER_PORT: 80      # must match your app & target group
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write       # required for GitHub OIDC
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region:     ${{ secrets.AWS_REGION }}
+
       - id: ecr
         uses: aws-actions/amazon-ecr-login@v2
-      - name: Build and push
+
+      - name: Build and push image
         env:
-          IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+          IMAGE_TAG: ${{ github.sha }}
           REGISTRY:  ${{ steps.ecr.outputs.registry }}
         run: |
-          docker build -t "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG" .
+          docker build -t "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG" "$APP_DIR"
           docker push "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG"
-      - name: Render taskdef
+
+      - name: Render task definition
         env:
-          IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+          IMAGE_TAG: ${{ github.sha }}
           REGISTRY:  ${{ steps.ecr.outputs.registry }}
         run: |
           cat > taskdef.json <<'JSON'
-          { "family": "${{ secrets.ECS_TASK_FAMILY }}",
+          {
+            "family": "${{ secrets.ECS_TASK_FAMILY }}",
             "networkMode": "awsvpc",
             "executionRoleArn": "${{ secrets.ECS_TASK_EXECUTION_ROLE_ARN }}",
             "taskRoleArn": "${{ secrets.ECS_TASK_ROLE_ARN }}",
             "containerDefinitions": [{
-              "name": "app",
+              "name": "${{ env.CONTAINER_NAME }}",
               "image": "${REGISTRY}/${{ secrets.ECR_REPOSITORY }}:${IMAGE_TAG}",
               "essential": true,
-              "portMappings": [{"containerPort": 8080, "protocol": "tcp"}],
-              "logConfiguration": {"logDriver":"awslogs","options":{
-                "awslogs-group":"/ecs/${{ secrets.ECS_TASK_FAMILY }}",
-                "awslogs-region":"${{ secrets.AWS_REGION }}","awslogs-stream-prefix":"ecs"}}
+              "portMappings": [{ "containerPort": ${{ env.CONTAINER_PORT }}, "protocol": "tcp" }],
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-group": "/ecs/${{ secrets.ECS_TASK_FAMILY }}",
+                  "awslogs-region": "${{ secrets.AWS_REGION }}",
+                  "awslogs-stream-prefix": "ecs"
+                }
+              }
             }],
-            "requiresCompatibilities":["FARGATE"], "cpu":"256", "memory":"512" }
+            "requiresCompatibilities": ["FARGATE"],
+            "cpu": "256",
+            "memory": "512"
+          }
           JSON
-      - uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: taskdef.json
           service: ${{ secrets.ECS_SERVICE }}
