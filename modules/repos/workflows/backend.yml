@@ -5,7 +5,7 @@ on:
     branches: development
     paths:
       - 'github-backend-test/**'
-      - '.github/workflows/deploy-backend.yml'
+      - '.github/workflows/deploy-backend-development.yml'
 
 env:
   APP_DIR: github-backend-test          # <--- change if your app folder is different
