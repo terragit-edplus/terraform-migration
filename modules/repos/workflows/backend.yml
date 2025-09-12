@@ -39,40 +39,18 @@ jobs:
         run: |
           docker build -t "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG" "$APP_DIR"
           docker push "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG"
+          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY }} --query taskDefinition > taskdef.json
 
       - name: Render task definition
-        env:
-          IMAGE_TAG: ${{ github.sha }}
-          REGISTRY:  ${{ steps.ecr.outputs.registry }}
-        run: |
-          cat > taskdef.json <<'JSON'
-          {
-            "family": "${{ secrets.ECS_TASK_FAMILY }}",
-            "networkMode": "awsvpc",
-            "executionRoleArn": "${{ secrets.ECS_TASK_EXECUTION_ROLE_ARN }}",
-            "taskRoleArn": "${{ secrets.ECS_TASK_ROLE_ARN }}",
-            "containerDefinitions": [{
-              "name": "${{ env.CONTAINER_NAME }}",
-              "image": "${REGISTRY}/${{ secrets.ECR_REPOSITORY }}:${IMAGE_TAG}",
-              "essential": true,
-              "portMappings": [{ "containerPort": ${{ env.CONTAINER_PORT }}, "protocol": "tcp" }],
-              "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                  "awslogs-group": "/ecs/${{ secrets.ECS_TASK_FAMILY }}",
-                  "awslogs-region": "${{ secrets.AWS_REGION }}",
-                  "awslogs-stream-prefix": "ecs"
-                }
-              }
-            }],
-            "requiresCompatibilities": ["FARGATE"],
-            "cpu": "256",
-            "memory": "512"
-          }
-          JSON
+        id: taskdef
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: taskdef.json
+          container-name: app
+          image: ${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: taskdef.json
           service: ${{ secrets.ECS_SERVICE }}
