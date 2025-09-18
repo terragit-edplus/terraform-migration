@@ -66,6 +66,7 @@ def _load_credentials() -> service_account.Credentials:
         scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"],
     )
     creds.refresh(google.auth.transport.requests.Request())
+    print(creds.token)
     return creds
 
 
