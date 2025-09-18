@@ -1,115 +1,71 @@
-#!/usr/bin/env python3
-"""
-Fetch multiple Google Sheet tabs (by gid) as CSV using a service account,
-normalize them into one JSON snapshot for Terraform.
+# requirements: google-api-python-client google-auth google-auth-httplib2
+import os, json
+from typing import Dict, List
+import google.auth
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
 
-Env vars required:
-  GOOGLE_CREDENTIALS   = JSON string of the service account key (or path; see below)
-  SHEET_ID             = The spreadsheet ID
-  TAB_REPOS_GID        = gid for each tab below...
-  TAB_MEMBERS_GID
-  TAB_TEAMS_GID
-  TAB_TEAM_MEMBERS_GID
-  TAB_BRANCHES_GID
-  TAB_USER_PERMS_GID
-  TAB_TEAM_PERMS_GID
-  TAB_ADMINS_GID
-  TAB_CODEOWNERS_GID
+SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly"
 
-Optional:
-  OUT_PATH             = where to write the snapshot (default: data/snapshot.json)
-
-Requires: google-auth, requests
-"""
-
-import os
-import io
-import csv
-import json
-import requests
-from typing import List, Dict
-from google.oauth2 import service_account
-import google.auth.transport.requests
-
-
-# ---- Config ----
 SHEET_ID = os.environ["SHEET_ID"]
 OUT_PATH = os.environ.get("OUT_PATH", "data/snapshot.json")
 
-TAB_ENV = {
-    "repos":            "TAB_REPOS_GID",
-    "members":          "TAB_MEMBERS_GID",
-    "teams":            "TAB_TEAMS_GID",
-    "team_members":     "TAB_TEAM_MEMBERS_GID",
-    "branches":         "TAB_BRANCHES_GID",
-    "user_permissions": "TAB_USER_PERMS_GID",
-    "team_permissions": "TAB_TEAM_PERMS_GID",
-    "administrators":   "TAB_ADMINS_GID",
-    "codeowners_rules": "TAB_CODEOWNERS_GID",
+# Use TAB NAMES (no gid). Set these envs in your workflow, or hardcode them.
+TAB_NAMES = {
+    "repos":            os.environ["TAB_REPOS"],
+    "members":          os.environ["TAB_MEMBERS"],
+    "teams":            os.environ["TAB_TEAMS"],
+    "team_members":     os.environ["TAB_TEAM_MEMBERS"],
+    "branches":         os.environ["TAB_BRANCHES"],
+    "user_permissions": os.environ["TAB_USER_PERMS"],
+    "team_permissions": os.environ["TAB_TEAM_PERMS"],
+    "administrators":   os.environ["TAB_ADMINS"],
+    "codeowners_rules": os.environ["TAB_CODEOWNERS"],
 }
 
-# ---- Auth (Google service account) ----
-def _load_credentials() -> service_account.Credentials:
-    raw = os.environ.get("GOOGLE_CREDENTIALS")
-    if not raw:
-        raise RuntimeError("GOOGLE_CREDENTIALS env var is required")
+def get_service():
+    creds, _ = google.auth.default(scopes=[SCOPE])
+    if not creds.valid:
+        creds.refresh(Request())
+    return build("sheets", "v4", credentials=creds, cache_discovery=False)
 
-    # Allow either raw JSON or a path to a JSON file
-    if raw.strip().startswith("{"):
-        info = json.loads(raw)
-    else:
-        with open(raw, "r", encoding="utf-8") as f:
-            info = json.load(f)
-
-    creds = service_account.Credentials.from_service_account_info(
-        info,
-        scopes=[
-            "https://www.googleapis.com/auth/spreadsheets.readonly",
-            "https://www.googleapis.com/auth/drive.readonly"
-        ],
-    )
-    creds.refresh(google.auth.transport.requests.Request())
-    return creds
-
-
-def _fetch_csv_as_dicts(token: str, gid: str) -> List[Dict[str, str]]:
-    url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={gid}"
-    r = requests.get(url, headers={"Authorization": f"Bearer {token}"}, timeout=60)
-    r.raise_for_status()
-
-    # Parse CSV safely (handles commas/quotes/newlines)
-    text = r.content.decode("utf-8", errors="replace")
-    reader = csv.DictReader(io.StringIO(text))
-    rows = []
-    for raw in reader:
-        # Normalize: trim keys/values, drop empty rows
-        row = { (k or "").strip(): (v or "").strip() for k, v in raw.items() }
-        if any(v for v in row.values()):
-            rows.append(row)
-    return rows
-
+def normalize(headers: List[str], rows: List[List[str]]):
+    heads = [(h or "").strip().lower() for h in headers]
+    out = []
+    for r in rows:
+        obj = {heads[i]: (r[i].strip() if i < len(r) and r[i] is not None else "")
+               for i in range(len(heads))}
+        if any(v for v in obj.values()):
+            out.append(obj)
+    return out
 
 def main():
-    creds = _load_credentials()
-    token = creds.token
+    svc = get_service()
+    ranges = list(TAB_NAMES.values())                       # e.g. ["Repos","Members",...]
+    resp = svc.spreadsheets().values().batchGet(
+        spreadsheetId=SHEET_ID,
+        ranges=ranges,
+        valueRenderOption="FORMATTED_VALUE",
+        dateTimeRenderOption="FORMATTED_STRING",
+        majorDimension="ROWS",
+    ).execute()
 
-    snapshot = {}
-    missing = []
-    for name, env_key in TAB_ENV.items():
-        gid = os.environ.get(env_key)
-        if not gid:
-            missing.append(env_key)
+    # Map each returned valueRange to our keys
+    by_range = {vr["range"].split("!")[0].strip("'"): vr.get("values", []) for vr in resp.get("valueRanges", [])}
+
+    snapshot: Dict[str, list] = {}
+    for key, tab in TAB_NAMES.items():
+        values = by_range.get(tab, [])
+        if not values:
+            snapshot[key] = []
             continue
-        snapshot[name] = _fetch_csv_as_dicts(token, gid)
-
-    if missing:
-        raise RuntimeError(f"Missing required tab gid env vars: {', '.join(missing)}")
+        headers, *rows = values
+        snapshot[key] = normalize(headers, rows)
 
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
     with open(OUT_PATH, "w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, sort_keys=True)
-    print(f"Wrote snapshot to {OUT_PATH} (keys: {', '.join(snapshot.keys())})")
-
+    print(f"Wrote {OUT_PATH} with keys: {', '.join(snapshot.keys())}")
 
 if __name__ == "__main__":
     main()
