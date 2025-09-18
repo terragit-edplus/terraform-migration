@@ -63,10 +63,12 @@ def _load_credentials() -> service_account.Credentials:
 
     creds = service_account.Credentials.from_service_account_info(
         info,
-        scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"],
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets.readonly",
+            "https://www.googleapis.com/auth/drive.readonly"
+        ],
     )
     creds.refresh(google.auth.transport.requests.Request())
-    print(creds.token)
     return creds
 
 
