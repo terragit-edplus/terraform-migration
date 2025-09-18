@@ -2,22 +2,22 @@ name: Deploy Backend (Fargate)
 
 on:
   push:
-    branches: development
+    branches: [ development ]
     paths:
       - 'github-backend-test/**'
       - '.github/workflows/deploy-backend-development.yml'
 
 env:
-  APP_DIR: github-backend-test          # <--- change if your app folder is different
-  CONTAINER_NAME: github-backend-container      # must match your ECS service's container name
-  CONTAINER_PORT: 80      # must match your app & target group
+  APP_DIR: ${{ var.APP_DIR }}        # folder to build
+  CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}  # must match TD container name exactly
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   deploy:
     environment: ${{ github.ref_name }}
     runs-on: ubuntu-latest
     permissions:
-      id-token: write       # required for GitHub OIDC
+      id-token: write
       contents: read
 
     steps:
@@ -34,25 +34,33 @@ jobs:
 
       - name: Build and push image
         env:
-          IMAGE_TAG: ${{ github.sha }}
-          REGISTRY:  ${{ steps.ecr.outputs.registry }}
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
         run: |
           docker build -t "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG" "$APP_DIR"
           docker push "$REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG"
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_FAMILY }} --query taskDefinition > taskdef.json
 
-      - name: Render task definition
+      - name: Fetch current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${{ secrets.ECS_TASK_FAMILY }}" \
+            --query taskDefinition > taskdef.json
+
+      - name: Render task definition (swap image for the right container)
         id: taskdef
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: taskdef.json
-          container-name: app
-          image: ${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+      - name: Show the image we will deploy (sanity check)
+        run: |
+          cat "${{ steps.taskdef.outputs.task-definition }}" | jq -r '.containerDefinitions[] | .name + " -> " + .image'
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
-          task-definition: taskdef.json
+          task-definition: ${{ steps.taskdef.outputs.task-definition }}   # <— use rendered output
           service: ${{ secrets.ECS_SERVICE }}
           cluster: ${{ secrets.ECS_CLUSTER }}
           wait-for-service-stability: true

@@ -8,15 +8,28 @@ provider "github" {
 }
 
 locals {
-  repos              = csvdecode(file("${path.module}/csv/repos.csv"))
-  members            = csvdecode(file("${path.module}/csv/members.csv"))
-  teams              = csvdecode(file("${path.module}/csv/teams.csv"))
-  team_members       = csvdecode(file("${path.module}/csv/team_members.csv"))
-  branches           = csvdecode(file("${path.module}/csv/branches.csv"))
-  user_permissions   = csvdecode(file("${path.module}/csv/user_repo_permissions.csv"))
-  team_permissions   = csvdecode(file("${path.module}/csv/team_repo_permissions.csv"))
-  administrators              = csvdecode(file("${path.module}/csv/admins.csv"))
-  codeowners_rules  = csvdecode(file("${path.module}/csv/codeowner_rules.csv"))
+  config           = jsondecode(file(var.config_path))
+  repos              = local.config.repos
+  members            = local.config.members
+  teams              = local.config.teams
+  team_members       = local.config.team_members
+  branches           = local.config.branches
+  user_permissions   = local.config.user_permissions
+  team_permissions   = local.config.team_permissions
+  administrators              = local.config.administrators
+  codeowners_rules  = local.config.codeowners_rules
+}
+
+module "members" {
+  source  = "./modules/org"
+  members = local.members
+
+}
+
+module "teams" {
+  source = "./modules/teams"
+  teams  = local.teams
+  team_members = local.team_members
 }
 
 module "repos" {
@@ -29,13 +42,4 @@ module "repos" {
   codeowners_rules = local.codeowners_rules
 }
 
-module "members" {
-  source  = "./modules/org"
-  members = local.members
-}
 
-module "teams" {
-  source = "./modules/teams"
-  teams  = local.teams
-  team_members = local.team_members
-}

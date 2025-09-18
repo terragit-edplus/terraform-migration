@@ -5,12 +5,40 @@ on:
         branches:
         - main
 
+permissions:
+    contents: write
+
 jobs:
     deploy:
         runs-on: ubuntu-latest
         steps:
           - name: Checkout code
             uses: actions/checkout@v4
+
+          - name: Set up Python
+            uses: actions/setup-python@v5
+            with:
+              python-version: "3.11"
+
+          - name: Install Python deps
+            run: pip install google-auth google-auth-httplib2 requests
+
+          - name : Fetch Google Sheet -> snapshot.json
+            env:
+              GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+              SHEET_ID: ${{ secrets.SHEET_ID }}
+              TAB_REPOS_GID: ${{ secrets.TAB_REPOS_GID }}
+              TAB_MEMBERS_GID: ${{ secrets.TAB_MEMBERS_GID }}
+              TAB_TEAMS_GID: ${{ secrets.TAB_TEAMS_GID }}
+              TAB_TEAM_MEMBERS_GID: ${{ secrets.TAB_TEAM_MEMBERS_GID }}
+              TAB_BRANCHES_GID: ${{ secrets.TAB_BRANCHES_GID }}
+              TAB_USER_PERMISSIONS_GID: ${{ secrets.TAB_USER_PERMISSIONS_GID }}
+              TAB_TEAM_PERMISSIONS_GID: ${{ secrets.TAB_TEAM_PERMISSIONS_GID }}
+              TAB_ADMINS_GID: ${{ secrets.TAB_ADMINS_GID }}
+              TAB_CODEOWNERS_GID: ${{ secrets.TAB_CODEOWNERS_GID }}
+              OUTPUT_PATH: data/snapshot.json
+            run: python scripts/sheet_to_snapshot.py
+
 
           - name: Set up Terraform
             uses: hashicorp/setup-terraform@v2
@@ -27,6 +55,7 @@ jobs:
               TF_VAR_app_id: ${{ secrets.APP_ID }}
               TF_VAR_app_installation_id: ${{ secrets.INSTALLATION_ID }}
               TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
+              TF_VAR_config_path: data/snapshot.json  
             run: terraform plan -out=tfplan
 
           - name: Terraform Apply
