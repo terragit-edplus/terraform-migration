@@ -12,15 +12,15 @@ OUT_PATH = os.environ.get("OUT_PATH", "data/snapshot.json")
 
 # Use TAB NAMES (no gid). Set these envs in your workflow, or hardcode them.
 TAB_NAMES = {
-    "repos":            os.environ["TAB_REPOS"],
-    "members":          os.environ["TAB_MEMBERS"],
-    "teams":            os.environ["TAB_TEAMS"],
-    "team_members":     os.environ["TAB_TEAM_MEMBERS"],
-    "branches":         os.environ["TAB_BRANCHES"],
-    "user_permissions": os.environ["TAB_USER_PERMS"],
-    "team_permissions": os.environ["TAB_TEAM_PERMS"],
-    "administrators":   os.environ["TAB_ADMINS"],
-    "codeowners_rules": os.environ["TAB_CODEOWNERS"],
+    "repos":            os.environ["TAB_REPOS_GID"],
+    "members":          os.environ["TAB_MEMBERS_GID"],
+    "teams":            os.environ["TAB_TEAMS_GID"],
+    "team_members":     os.environ["TAB_TEAM_MEMBERS_GID"],
+    "branches":         os.environ["TAB_BRANCHES_GID"],
+    "user_permissions": os.environ["TAB_USER_PERMISSIONS_GID"],
+    "team_permissions": os.environ["TAB_TEAM_PERMISSIONS_GID"],
+    "administrators":   os.environ["TAB_ADMINS_GID"],
+    "codeowners_rules": os.environ["TAB_CODEOWNERS_GID"],
 }
 
 def get_service():
