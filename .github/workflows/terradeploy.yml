@@ -20,7 +20,7 @@ jobs:
               python-version: "3.11"
 
           - name: Install Python deps
-            run: pip install google-api-python-client google-auth google-auth-httplib2 requests
+            run: pip install google-api-python-client google-auth google-auth-httplib2 requests PyJWT
 
           - name : Fetch Google Sheet -> snapshot.json
             env:
