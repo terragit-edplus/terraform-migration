@@ -4,10 +4,10 @@ import jwt
 import requests
 
 
-app_id = os.environ.get("GITHUB_APP_ID")
-pem_str = os.environ.get("GITHUB_APP_PRIVATE_KEY")
+app_id = os.environ.get("APP_ID")
+pem_str = os.environ.get("APP_PEM")
 pem_bytes = pem_str.encode('utf-8')
-org = os.environ.get("GITHUB_ORGANIZATION")  # Changed from GITHUB_ORG_NAME
+org = os.environ.get("ORGANIZATION")
 
 now = int(time.time())
 payload = {
