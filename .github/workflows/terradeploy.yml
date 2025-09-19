@@ -44,7 +44,7 @@ jobs:
               APP_ID: ${{ secrets.APP_ID }}
               APP_PEM: ${{ secrets.APP_PEM }}
               ORGANIZATION: ${{ secrets.ORGANIZATION }}
-            run: echo "INSTALLATION_ID=$(python scripts/get_installation_id.py) >> $GITHUB_OUTPUT"
+            run: echo "INSTALLATION_ID=$(python scripts/get_installation_id.py)" >> "$GITHUB_OUTPUT"
 
 
           - name: Set up Terraform
