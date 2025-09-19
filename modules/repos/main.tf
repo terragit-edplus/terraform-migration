@@ -182,8 +182,8 @@ resource "github_branch_protection_v3" "protection" {
     required_approving_review_count = each.value.minPRCount
   }
   restrictions {
-    users = length(trimspace(each.value.users)) > 0 ? split(";", each.value.users) : []
-    teams = length(trimspace(each.value.teams)) > 0 ? split(";", each.value.teams) : []
+    users = length(trimspace(each.value.users)) > 0 ? split(",", each.value.users) : []
+    teams = length(trimspace(each.value.teams)) > 0 ? split(",", each.value.teams) : []
   }
    depends_on = [github_branch.default, github_branch.custom, github_repository_file.frontend_workflow ]
 }
