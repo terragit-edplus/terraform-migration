@@ -27,15 +27,15 @@ jobs:
             env:
               GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
               SHEET_ID: ${{ secrets.SHEET_ID }}
-              TAB_REPOS_GID: ${{ secrets.TAB_REPOS_GID }}
-              TAB_MEMBERS_GID: ${{ secrets.TAB_MEMBERS_GID }}
-              TAB_TEAMS_GID: ${{ secrets.TAB_TEAMS_GID }}
-              TAB_TEAM_MEMBERS_GID: ${{ secrets.TAB_TEAM_MEMBERS_GID }}
-              TAB_BRANCHES_GID: ${{ secrets.TAB_BRANCHES_GID }}
-              TAB_USER_PERMISSIONS_GID: ${{ secrets.TAB_USER_PERMISSIONS_GID }}
-              TAB_TEAM_PERMISSIONS_GID: ${{ secrets.TAB_TEAM_PERMISSIONS_GID }}
-              TAB_ADMINS_GID: ${{ secrets.TAB_ADMINS_GID }}
-              TAB_CODEOWNERS_GID: ${{ secrets.TAB_CODEOWNERS_GID }}
+              TAB_REPOS: ${{ secrets.TAB_REPOS }}
+              TAB_MEMBERS: ${{ secrets.TAB_MEMBERS }}
+              TAB_TEAMS: ${{ secrets.TAB_TEAMS }}
+              TAB_TEAM_MEMBERS: ${{ secrets.TAB_TEAM_MEMBERS }}
+              TAB_BRANCHES: ${{ secrets.TAB_BRANCHES }}
+              TAB_USER_PERMISSIONS: ${{ secrets.TAB_USER_PERMISSIONS }}
+              TAB_TEAM_PERMISSIONS: ${{ secrets.TAB_TEAM_PERMISSIONS }}
+              TAB_ADMINS: ${{ secrets.TAB_ADMINS }}
+              TAB_CODEOWNERS: ${{ secrets.TAB_CODEOWNERS }}
               OUTPUT_PATH: data/snapshot.json
             run: python scripts/sheet_to_snapshot.py
 
