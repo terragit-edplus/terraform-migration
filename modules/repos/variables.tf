@@ -2,33 +2,33 @@ variable "repos" {
   type = list(object({
     name        = string
     description = string
-    visibility     = string
+    visibility  = string
   }))
 }
 
 variable "branches" {
   type = list(object({
-    repo   = string
-    branch = string
-    minPRCount       = optional(number, 0)
-    users  = string
-    teams  = string
+    repo                    = string
+    branch                  = string
+    minPRCount              = optional(number, 0)
+    users                   = string
+    teams                   = string
     codeOwnerReviewRequired = optional(bool, false)
   }))
 }
 
-variable "team_permissions"{
+variable "team_permissions" {
   type = list(object({
-    repo = string
-    team = string
+    repo       = string
+    team       = string
     permission = string
   }))
 }
 
-variable "user_permissions"{
+variable "user_permissions" {
   type = list(object({
-    repo = string
-    user = string
+    repo       = string
+    user       = string
     permission = string
   }))
 }
@@ -46,5 +46,13 @@ variable "codeowners_rules" {
     path   = string
     users  = string
     teams  = string
+  }))
+}
+
+variable "environments" {
+  type = list(object({
+    repo        = string
+    environment = string
+    type        = string
   }))
 }

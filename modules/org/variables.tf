@@ -1,6 +1,6 @@
 variable "members" {
   type = list(object({
-    username        = string
-    role        = string
+    username = string
+    role     = string
   }))
 }
