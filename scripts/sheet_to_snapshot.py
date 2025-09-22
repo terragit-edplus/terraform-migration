@@ -25,6 +25,7 @@ TAB_NAMES = {
     "team_permissions": os.environ["TAB_TEAM_PERMISSIONS"],
     "administrators":   os.environ["TAB_ADMINS"],
     "codeowners_rules": os.environ["TAB_CODEOWNERS"],
+    "environments":     os.environ["TAB_ENVIRONMENTS"]
 }
 
 def load_service_account_credentials():
