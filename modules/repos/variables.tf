@@ -53,6 +53,7 @@ variable "environments" {
   type = list(object({
     repo        = string
     environment = string
-    type        = string
+    frontend    = optional(string, "no")
+    backend     = optional(string, "no")
   }))
 }
