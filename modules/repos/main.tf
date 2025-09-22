@@ -130,7 +130,7 @@ resource "github_repository_environment_deployment_policy" "env_policy" {
 }
 
 resource "github_repository_file" "frontend_workflow" {
-  for_each            = github_repository_environment.envs
+  for_each            = { for e in local.environments : "${e.repo}:${e.environment}" => e if e.type == "frontend" }
   repository          = each.value.repository
   branch              = each.value.environment
   file                = ".github/workflows/deploy-frontend-${each.value.environment}.yml"
@@ -141,7 +141,7 @@ resource "github_repository_file" "frontend_workflow" {
 }
 
 resource "github_repository_file" "backend_workflow" {
-  for_each            = github_repository_environment.envs
+  for_each            = { for e in local.environments : "${e.repo}:${e.environment}" => e if e.type == "backend" }
   repository          = each.value.repository
   branch              = each.value.environment
   file                = ".github/workflows/deploy-backend-${each.value.environment}.yml"

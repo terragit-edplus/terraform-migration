@@ -35,6 +35,7 @@ jobs:
               TAB_TEAM_PERMISSIONS: ${{ secrets.TAB_TEAM_PERMISSIONS }}
               TAB_ADMINS: ${{ secrets.TAB_ADMINS }}
               TAB_CODEOWNERS: ${{ secrets.TAB_CODEOWNERS }}
+              TAB_ENVIRONMENTS: ${{ secrets.TAB_ENVIRONMENTS }}
               OUTPUT_PATH: data/snapshot.json
             run: python scripts/sheet_to_snapshot.py
 
