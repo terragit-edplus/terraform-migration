@@ -28,8 +28,6 @@ locals {
 
   admin_teams = setproduct(var.repos.*.name, var.administrators.*.team)
 
-  environments = setproduct(var.repos.*.name, local.default_branches)
-
 }
 
 #Create default branches if they do not exist
@@ -123,7 +121,7 @@ resource "github_repository_environment" "envs" {
 
 resource "github_repository_environment_deployment_policy" "env_policy" {
   for_each       = { for e in var.environments : "${e.repo}:${e.environment}" => e }
-  repository     = each.value.repository
+  repository     = each.value.repo
   environment    = each.value.environment
   branch_pattern = each.value.environment
   depends_on     = [github_repository_environment.envs]
@@ -131,7 +129,7 @@ resource "github_repository_environment_deployment_policy" "env_policy" {
 
 resource "github_repository_file" "frontend_workflow" {
   for_each            = { for e in var.environments : "${e.repo}:${e.environment}" => e if e.frontend == "yes" }
-  repository          = each.value.repository
+  repository          = each.value.repo
   branch              = each.value.environment
   file                = ".github/workflows/deploy-frontend-${each.value.environment}.yml"
   content             = file("${path.module}/workflows/frontend.yml")
@@ -142,7 +140,7 @@ resource "github_repository_file" "frontend_workflow" {
 
 resource "github_repository_file" "backend_workflow" {
   for_each            = { for e in var.environments : "${e.repo}:${e.environment}" => e if e.backend == "yes" }
-  repository          = each.value.repository
+  repository          = each.value.repo
   branch              = each.value.environment
   file                = ".github/workflows/deploy-backend-${each.value.environment}.yml"
   content             = file("${path.module}/workflows/backend.yml")
