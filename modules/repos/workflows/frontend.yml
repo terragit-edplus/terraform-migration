@@ -17,9 +17,11 @@
 name: Upload index.html to S3
 
 on:
-  workflow_dispatch: {}
+  push:
+    branches:
+      - 'development'
     paths:
-      - 'index.html'
+      - '.github/workflows/deploy-frontend-development.yml'
 
 permissions:
   id-token: write        

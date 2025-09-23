@@ -27,14 +27,10 @@
 name: Deploy Backend (Fargate)
 
 on:
-  workflow_dispatch: {}
-    inputs:
-      environment:
-        description: "Environment to run against"
-        required: true
-        default: "development"
+  push:
+    branches:
+      - 'development'
     paths:
-      - 'github-backend-test/**'
       - '.github/workflows/deploy-backend-development.yml'
 
 env:
