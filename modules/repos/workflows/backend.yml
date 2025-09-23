@@ -34,7 +34,7 @@ on:
       - '.github/workflows/deploy-backend-development.yml'
 
 env:
-  APP_DIR: ${{ var.APP_DIR }}        # folder to build
+  APP_DIR: ${{ vars.APP_DIR }}        # folder to build
   CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}  # must match TD container name exactly
   IMAGE_TAG: ${{ github.sha }}
 
