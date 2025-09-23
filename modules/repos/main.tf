@@ -136,6 +136,9 @@ resource "github_repository_file" "frontend_workflow" {
   commit_message      = "Add CI/CD frontend workflow for ${each.value.environment} environment"
   overwrite_on_create = true
   depends_on          = [github_repository_environment.envs]
+  lifecycle {
+    ignore_changes = [content, sha]
+  }
 }
 
 resource "github_repository_file" "backend_workflow" {
@@ -147,6 +150,9 @@ resource "github_repository_file" "backend_workflow" {
   commit_message      = "Add CI/CD backend workflow for ${each.value.environment} environment"
   overwrite_on_create = true
   depends_on          = [github_repository_environment.envs]
+  lifecycle {
+    ignore_changes = [content, sha]
+  }
 }
 
 
