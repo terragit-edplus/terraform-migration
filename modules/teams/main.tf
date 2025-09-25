@@ -11,4 +11,6 @@ resource "github_team_membership" "team_members" {
   team_id  = each.value.team
   username = each.value.username
   role     = each.value.role
+
+  depends_on = [github_team.teams]
 }
