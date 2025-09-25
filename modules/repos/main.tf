@@ -30,7 +30,6 @@ locals {
 
 }
 
-#Create default branches if they do not exist
 resource "github_branch" "default" {
   for_each      = local.default_repo_branches
   repository    = each.value.repo
@@ -73,6 +72,7 @@ resource "github_team_repository" "default_admins" {
   repository = each.value[0]
   team_id    = each.value[1]
   permission = "admin"
+  depends_on = [github_team_repository.teams]
 }
 
 locals {
