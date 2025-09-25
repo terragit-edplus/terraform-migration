@@ -42,6 +42,7 @@ module "repos" {
   administrators   = local.administrators
   codeowners_rules = local.codeowners_rules
   environments     = local.environments
+  depends_on       = [module.members, module.teams]
 }
 
 
