@@ -30,6 +30,7 @@ module "teams" {
   source       = "./modules/teams"
   teams        = local.teams
   team_members = local.team_members
+  depends_on   = [module.members]
 }
 
 module "repos" {
