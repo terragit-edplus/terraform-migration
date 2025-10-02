@@ -64,7 +64,9 @@ jobs:
               TF_VAR_app_installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
               TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
               TF_VAR_config_path: data/snapshot.json
-            run: terraform plan -no-color -out=tfplan.bin | tee tfplan.txt
+            run: |
+              terraform plan -out=tfplan 
+              terraform show -no-color tfplan > tfplan.txt
 
           - name: Upload plan artifact
             uses: actions/upload-artifact@v4
@@ -72,7 +74,7 @@ jobs:
               name: tfplan
               retention-days: 1
               path: |
-                tfplan.bin
+                tfplan
                 tfplan.txt
                 data/snapshot.json
           
@@ -114,4 +116,4 @@ jobs:
             TF_VAR_app_installation_id: ${{ needs.terraform-plan.outputs.installation_id }}
             TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
             TF_VAR_config_path: data/snapshot.json
-          run: terraform apply -auto-approve tfplan.bin
+          run: terraform apply -auto-approve tfplan
