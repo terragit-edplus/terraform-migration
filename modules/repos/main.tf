@@ -4,6 +4,9 @@ resource "github_repository" "repos" {
   description = each.value.description
   visibility  = each.value.visibility
   auto_init   = true
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 locals {
@@ -137,7 +140,7 @@ resource "github_repository_file" "frontend_workflow" {
   overwrite_on_create = true
   depends_on          = [github_repository_environment.envs]
   lifecycle {
-    ignore_changes = [content, sha]
+    ignore_changes = [content]
   }
 }
 
@@ -151,7 +154,7 @@ resource "github_repository_file" "backend_workflow" {
   overwrite_on_create = true
   depends_on          = [github_repository_environment.envs]
   lifecycle {
-    ignore_changes = [content, sha]
+    ignore_changes = [content]
   }
 }
 

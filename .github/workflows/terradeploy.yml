@@ -1,15 +1,23 @@
 name: Terraform Deploy
 
 on:
-    workflow_dispatch: 
-    schedule:
-      - cron: '0 0 * * *'
+    workflow_dispatch:
+      inputs:
+        terraform-apply:
+          description: 'Do you want to apply the Terraform plan?'
+          required: true
+          default: 'No'
+          type: choice
+          options: ['Yes', 'No']
+
 permissions:
     contents: write
 
 jobs:
-    deploy:
+    terraform-plan:
         runs-on: ubuntu-latest
+        outputs:
+          installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
         steps:
           - name: Checkout code
             uses: actions/checkout@v4
@@ -47,7 +55,6 @@ jobs:
               ORGANIZATION: ${{ secrets.ORGANIZATION }}
             run: echo "INSTALLATION_ID=$(python scripts/get_installation_id.py)" >> "$GITHUB_OUTPUT"
 
-
           - name: Set up Terraform
             uses: hashicorp/setup-terraform@v2
             with:
@@ -63,14 +70,35 @@ jobs:
               TF_VAR_app_id: ${{ secrets.APP_ID }}
               TF_VAR_app_installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
               TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
-              TF_VAR_config_path: data/snapshot.json  
-            run: terraform plan -out=tfplan
+              TF_VAR_config_path: data/snapshot.json
+            run: terraform plan -no-color -out=tfplan.bin | tee tfplan.txt
 
-          - name: Terraform Apply
-            if: github.ref == 'refs/heads/main'   # only apply on main branch (optional safety)
-            env:
-              TF_VAR_github_organization: ${{ secrets.ORGANIZATION }}
-              TF_VAR_app_id: ${{ secrets.APP_ID }}
-              TF_VAR_app_installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
-              TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
-            run: terraform apply -auto-approve tfplan
+          - name: Upload plan artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: tfplan
+              path: |
+                tfplan.bin
+                tfplan.txt
+
+    terraform-apply:
+      if: ${{ inputs.terraform-apply == 'Yes' }}
+      needs: terraform-plan
+      runs-on: ubuntu-latest
+      environment: deploy-terraform
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/download-artifact@v4
+          with:
+            name: tfplan
+            path: .
+
+        - name: Terraform Apply
+          
+          if: github.ref == 'refs/heads/main'   # only apply on main branch (optional safety)
+          env:
+            TF_VAR_github_organization: ${{ secrets.ORGANIZATION }}
+            TF_VAR_app_id: ${{ secrets.APP_ID }}
+            TF_VAR_app_installation_id: ${{ needs.terraform-plan.outputs.installation_id }}
+            TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
+          run: terraform apply -auto-approve tfplan.txt
