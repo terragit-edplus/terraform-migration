@@ -74,6 +74,7 @@ jobs:
               path: |
                 tfplan.bin
                 tfplan.txt
+                data/snapshot.json
 
     terraform-apply:
       needs: terraform-plan
@@ -102,4 +103,5 @@ jobs:
             TF_VAR_app_id: ${{ secrets.APP_ID }}
             TF_VAR_app_installation_id: ${{ needs.terraform-plan.outputs.installation_id }}
             TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
+            TF_VAR_config_path: data/snapshot.json
           run: terraform apply -auto-approve tfplan.bin
