@@ -75,6 +75,16 @@ jobs:
                 tfplan.bin
                 tfplan.txt
                 data/snapshot.json
+          
+          - name: Add plan to job summary
+            run: |
+              echo '### Terraform Plan' >> $GITHUB_STEP_SUMMARY
+              echo '<details><summary>Show output</summary>' >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+              echo '```text' >> $GITHUB_STEP_SUMMARY
+              cat tfplan.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo '</details>' >> $GITHUB_STEP_SUMMARY
 
     terraform-apply:
       needs: terraform-plan
