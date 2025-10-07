@@ -10,7 +10,7 @@ resource "github_repository" "repos" {
 }
 
 locals {
-  default_branches = ["development", "qa", "staging", "production"]
+  default_branches = ["nonprod", "nonprod-qa", "main"]
 
   default_repo_branches = {
     for rb in flatten([

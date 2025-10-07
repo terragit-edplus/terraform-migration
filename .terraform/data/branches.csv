@@ -1,0 +1,3 @@
+repo,branch,minPRCount,users,teams,codeOwnerReviewRequired
+repo2,main,0,,,false
+repo1,production,1,"svenk163,shashank-kv",administrators,false

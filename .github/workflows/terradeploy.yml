@@ -7,10 +7,8 @@ permissions:
     contents: write
 
 jobs:
-    terraform-plan:
+    github-management:
         runs-on: ubuntu-latest
-        outputs:
-          installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
         steps:
           - name: Checkout code
             uses: actions/checkout@v4
@@ -64,56 +62,14 @@ jobs:
               TF_VAR_app_installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
               TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
               TF_VAR_config_path: data/snapshot.json
-            run: |
-              terraform plan -out=tfplan 
-              terraform show -no-color tfplan > tfplan.txt
-
-          - name: Upload plan artifact
-            uses: actions/upload-artifact@v4
-            with:
-              name: tfplan
-              retention-days: 1
-              path: |
-                tfplan
-                tfplan.txt
-                data/snapshot.json
-          
-          - name: Add plan to job summary
-            run: |
-              echo '### Terraform Plan' >> $GITHUB_STEP_SUMMARY
-              echo '<details><summary>Show output</summary>' >> $GITHUB_STEP_SUMMARY
-              echo '' >> $GITHUB_STEP_SUMMARY
-              echo '```text' >> $GITHUB_STEP_SUMMARY
-              cat tfplan.txt >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              echo '</details>' >> $GITHUB_STEP_SUMMARY
-
-    terraform-apply:
-      needs: terraform-plan
-      runs-on: ubuntu-latest
-      environment: deploy-terraform
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/download-artifact@v4
-          with:
-            name: tfplan
-            path: .
-
-        - name: Set up Terraform
-          uses: hashicorp/setup-terraform@v2
-          with:
-            cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
-            terraform_version: "1.12.2"
-
-        - name: Terraform Init
-          run: terraform init
-
-        - name: Terraform Apply 
-          if: github.ref == 'refs/heads/main'   # only apply on main branch (optional safety)
-          env:
-            TF_VAR_github_organization: ${{ secrets.ORGANIZATION }}
-            TF_VAR_app_id: ${{ secrets.APP_ID }}
-            TF_VAR_app_installation_id: ${{ needs.terraform-plan.outputs.installation_id }}
-            TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
-            TF_VAR_config_path: data/snapshot.json
-          run: terraform apply -auto-approve tfplan
+            run: terraform plan -out=tfplan 
+              
+          - name: Terraform Apply 
+            if: github.ref == 'refs/heads/main'   # only apply on main branch (optional safety)
+            env:
+              TF_VAR_github_organization: ${{ secrets.ORGANIZATION }}
+              TF_VAR_app_id: ${{ secrets.APP_ID }}
+              TF_VAR_app_installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
+              TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
+              TF_VAR_config_path: data/snapshot.json
+            run: terraform apply -auto-approve tfplan
