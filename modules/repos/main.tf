@@ -119,7 +119,7 @@ resource "github_repository_environment" "envs" {
     protected_branches     = false
     custom_branch_policies = true
   }
-  depends_on = [github_repository.repos]
+  depends_on = [github_repository.repos, github_branch.default, github_branch.custom]
 }
 
 resource "github_repository_environment_deployment_policy" "env_policy" {
@@ -138,7 +138,7 @@ resource "github_repository_file" "frontend_workflow" {
   content             = file("${path.module}/workflows/frontend.yml")
   commit_message      = "Add CI/CD frontend workflow for ${each.value.environment} environment"
   overwrite_on_create = true
-  depends_on          = [github_repository_environment.envs]
+  depends_on          = [github_repository_environment_deployment_policy.env_policy]
   lifecycle {
     ignore_changes = [content]
   }
@@ -152,7 +152,7 @@ resource "github_repository_file" "backend_workflow" {
   content             = file("${path.module}/workflows/backend.yml")
   commit_message      = "Add CI/CD backend workflow for ${each.value.environment} environment"
   overwrite_on_create = true
-  depends_on          = [github_repository_environment.envs]
+  depends_on          = [github_repository_environment_deployment_policy.env_policy]
   lifecycle {
     ignore_changes = [content]
   }

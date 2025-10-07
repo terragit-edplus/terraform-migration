@@ -1,2 +1,2 @@
 repo,branch,path,users,teams
-repo1,production,*,"","edpl-devops-admin,administrators"
+repo1,nonprod,*,"","edpl-devops-admin"
