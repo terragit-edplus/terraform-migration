@@ -16,8 +16,8 @@ locals {
   repos            = csvdecode(file("data/repos.csv"))
   team_members     = csvdecode(file("data/team_members.csv"))
   team_permissions = csvdecode(file("data/team_repo_permissions.csv"))
-  teams            = csvdecode(file("csv/teams.csv"))
-  user_permissions = csvdecode(file("csv/user_permissions.csv"))
+  teams            = csvdecode(file("data/teams.csv"))
+  user_permissions = csvdecode(file("data/user_permissions.csv"))
 }
 
 module "members" {
