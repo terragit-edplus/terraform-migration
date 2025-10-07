@@ -21,23 +21,6 @@ jobs:
           - name: Install Python deps
             run: pip install google-api-python-client google-auth google-auth-httplib2 requests pyjwt cryptography
 
-          - name : Fetch Google Sheet -> snapshot.json
-            env:
-              GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-              SHEET_ID: ${{ secrets.SHEET_ID }}
-              TAB_REPOS: ${{ secrets.TAB_REPOS }}
-              TAB_MEMBERS: ${{ secrets.TAB_MEMBERS }}
-              TAB_TEAMS: ${{ secrets.TAB_TEAMS }}
-              TAB_TEAM_MEMBERS: ${{ secrets.TAB_TEAM_MEMBERS }}
-              TAB_BRANCHES: ${{ secrets.TAB_BRANCHES }}
-              TAB_USER_PERMISSIONS: ${{ secrets.TAB_USER_PERMISSIONS }}
-              TAB_TEAM_PERMISSIONS: ${{ secrets.TAB_TEAM_PERMISSIONS }}
-              TAB_ADMINS: ${{ secrets.TAB_ADMINS }}
-              TAB_CODEOWNERS: ${{ secrets.TAB_CODEOWNERS }}
-              TAB_ENVIRONMENTS: ${{ secrets.TAB_ENVIRONMENTS }}
-              OUTPUT_PATH: data/snapshot.json
-            run: python scripts/sheet_to_snapshot.py
-
           - name: Get GitHub App Installation ID
             id: get_installation_id
             env:
