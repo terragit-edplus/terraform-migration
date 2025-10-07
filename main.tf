@@ -10,14 +10,14 @@ provider "github" {
 locals {
   administrators   = csvdecode(file("data/admins.csv"))
   branches         = csvdecode(file("data/branches.csv"))
-  codeowners_rules = csvdecode(file("data/codeowners_rules.csv"))
+  codeowners_rules = csvdecode(file("data/codeowner_rules.csv"))
   environments     = csvdecode(file("data/environments.csv"))
   members          = csvdecode(file("data/members.csv"))
   repos            = csvdecode(file("data/repos.csv"))
   team_members     = csvdecode(file("data/team_members.csv"))
   team_permissions = csvdecode(file("data/team_repo_permissions.csv"))
   teams            = csvdecode(file("data/teams.csv"))
-  user_permissions = csvdecode(file("data/user_permissions.csv"))
+  user_permissions = csvdecode(file("data/user_repo_permissions.csv"))
 }
 
 module "members" {

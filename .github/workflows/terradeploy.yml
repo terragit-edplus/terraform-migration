@@ -19,7 +19,7 @@ jobs:
               python-version: "3.11"
 
           - name: Install Python deps
-            run: pip install google-api-python-client google-auth google-auth-httplib2 requests pyjwt cryptography
+            run: pip install requests pyjwt cryptography
 
           - name: Get GitHub App Installation ID
             id: get_installation_id
