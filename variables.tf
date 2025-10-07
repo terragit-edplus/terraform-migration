@@ -18,8 +18,3 @@ variable "app_pem_file" {
   type        = string
   default     = "github_app.pem"
 }
-
-variable "config_path" {
-  default     = "data/snapshot.json"
-  description = "Path to Google Sheets snapshot"
-}

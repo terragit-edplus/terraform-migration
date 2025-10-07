@@ -44,7 +44,6 @@ jobs:
               TF_VAR_app_id: ${{ secrets.APP_ID }}
               TF_VAR_app_installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
               TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
-              TF_VAR_config_path: data/snapshot.json
             run: terraform plan -out=tfplan 
               
           - name: Terraform Apply 
@@ -54,5 +53,4 @@ jobs:
               TF_VAR_app_id: ${{ secrets.APP_ID }}
               TF_VAR_app_installation_id: ${{ steps.get_installation_id.outputs.INSTALLATION_ID }}
               TF_VAR_app_pem_file: ${{ secrets.APP_PEM }}
-              TF_VAR_config_path: data/snapshot.json
             run: terraform apply -auto-approve tfplan

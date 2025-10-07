@@ -8,17 +8,16 @@ provider "github" {
 }
 
 locals {
-  config           = jsondecode(file(var.config_path))
-  repos            = local.config.repos
-  members          = local.config.members
-  teams            = local.config.teams
-  team_members     = local.config.team_members
-  branches         = local.config.branches
-  user_permissions = local.config.user_permissions
-  team_permissions = local.config.team_permissions
-  administrators   = local.config.administrators
-  codeowners_rules = local.config.codeowners_rules
-  environments     = local.config.environments
+  administrators   = csvdecode(file("data/admins.csv"))
+  branches         = csvdecode(file("data/branches.csv"))
+  codeowners_rules = csvdecode(file("data/codeowners_rules.csv"))
+  environments     = csvdecode(file("data/environments.csv"))
+  members          = csvdecode(file("data/members.csv"))
+  repos            = csvdecode(file("data/repos.csv"))
+  team_members     = csvdecode(file("data/team_members.csv"))
+  team_permissions = csvdecode(file("data/team_repo_permissions.csv"))
+  teams            = csvdecode(file("csv/teams.csv"))
+  user_permissions = csvdecode(file("csv/user_permissions.csv"))
 }
 
 module "members" {
